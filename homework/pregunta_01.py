@@ -7,7 +7,7 @@ Escriba el codigo que ejecute la accion solicitada en cada pregunta.
 import pandas as pd
 import re
 
-def process_report():
+def pregunta_01():
     def clean_line(line):
         return re.sub(r'\s+', ' ', line.strip())
 
