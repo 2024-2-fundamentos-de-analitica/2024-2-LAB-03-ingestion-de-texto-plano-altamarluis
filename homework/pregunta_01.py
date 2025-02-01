@@ -4,17 +4,44 @@ Escriba el codigo que ejecute la accion solicitada en cada pregunta.
 
 # pylint: disable=import-outside-toplevel
 
+import pandas as pd
+import re
 
-def pregunta_01():
-    """
-    Construya y retorne un dataframe de Pandas a partir del archivo
-    'files/input/clusters_report.txt'. Los requierimientos son los siguientes:
+def process_report():
+    def clean_line(line):
+        return re.sub(r'\s+', ' ', line.strip())
 
-    - El dataframe tiene la misma estructura que el archivo original.
-    - Los nombres de las columnas deben ser en minusculas, reemplazando los
-      espacios por guiones bajos.
-    - Las palabras clave deben estar separadas por coma y con un solo
-      espacio entre palabra y palabra.
+    def format_header(header):
+        return [col.lower().replace(' ', '_') for col in header]
 
+    def handle_row(line, current_row):
+        parts = re.split(r'\s{2,}', line)
+        if parts[0].isdigit():
+            if current_row:
+                data.append(current_row[:])
+            current_row.clear()
+            current_row.extend([int(parts[0]), int(parts[1]), float(parts[2].replace(',', '.'))])
+            current_row.append(clean_line(' '.join(parts[3:])))
+        else:
+            current_row[-1] += ' ' + clean_line(line)
 
-    """
+    with open('files/input/clusters_report.txt') as file:
+        lines = [line.strip() for line in file.readlines() if '---' not in line]
+
+    header = re.split(r'\s{2,}', lines[0])
+    header = format_header(header)
+
+    data = []
+    current_row = []
+
+    for line in lines[2:]:
+        handle_row(line, current_row)
+
+    if current_row:
+        data.append(current_row)
+
+    df = pd.DataFrame(data, columns=header)
+    return df
+
+df = process_report()
+print(df)
